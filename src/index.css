@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-golf-900: #1B5E20;
+  --color-golf-800: #2E7D32;
+  --color-golf-700: #388E3C;
+  --color-golf-600: #43A047;
+  --color-golf-500: #4CAF50;
+  --color-golf-400: #66BB6A;
+  --color-golf-100: #E8F5E9;
+  --color-golf-50: #F1F8E9;
+  --color-sand: #F5F5F0;
+  --color-gold: #FFC107;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-sand);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
