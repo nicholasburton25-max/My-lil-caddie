@@ -47,6 +47,7 @@ export default function RecordShot() {
   const { addShot } = useShots();
   const { location, loading: gpsLoading, error: gpsError, requestLocation, clearLocation } = useGeolocation();
   const [showAnimation, setShowAnimation] = useState(false);
+  const [lastSavedQuality, setLastSavedQuality] = useState<ResultQuality>('good');
 
   // Load last context for smart defaults
   const lastContext = (() => {
@@ -102,6 +103,7 @@ export default function RecordShot() {
     };
 
     addShot(shot);
+    setLastSavedQuality(resultQuality);
     setShowAnimation(true);
 
     // Save context for next shot
@@ -129,7 +131,7 @@ export default function RecordShot() {
   return (
     <div className="p-4 max-w-lg mx-auto space-y-5">
       {/* Golf Ball Animation */}
-      {showAnimation && <GolfBallAnimation onComplete={handleAnimationComplete} />}
+      {showAnimation && <GolfBallAnimation quality={lastSavedQuality} onComplete={handleAnimationComplete} />}
 
       {/* Context */}
       <div className="space-y-3">
