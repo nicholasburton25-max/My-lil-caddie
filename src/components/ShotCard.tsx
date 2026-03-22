@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Shot } from '../types/shot';
 import { RESULT_QUALITY_COLORS } from '../data/constants';
+import ShotTracer from './ShotTracer';
 
 interface ShotCardProps {
   shot: Shot;
@@ -48,6 +49,15 @@ export default function ShotCard({ shot, onDelete }: ShotCardProps) {
             )}
             <div><span className="font-medium">Date:</span> {dateStr} {timeStr}</div>
           </div>
+          {/* Mini Shot Tracer */}
+          {shot.club !== 'Putter' && (
+            <ShotTracer
+              shape={shot.shotShape}
+              distance={shot.distanceYards}
+              quality={shot.resultQuality}
+              className="h-32 rounded-lg overflow-hidden"
+            />
+          )}
           {shot.notes && <div className="text-gray-500 italic">"{shot.notes}"</div>}
           {shot.gpsLocation && (
             <div className="text-xs text-gray-400">
