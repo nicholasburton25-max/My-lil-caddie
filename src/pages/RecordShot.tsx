@@ -64,6 +64,8 @@ export default function RecordShot() {
   const [elevation, setElevation] = useState<ElevationType>('flat');
   const [shotShape, setShotShape] = useState<ShotShape>('straight');
   const [resultQuality, setResultQuality] = useState<ResultQuality>('good');
+  const [putts, setPutts] = useState('');
+  const [puttDistances, setPuttDistances] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
 
   // Get unique course names for datalist
@@ -93,6 +95,8 @@ export default function RecordShot() {
       elevation,
       shotShape,
       resultQuality,
+      putts: putts ? parseInt(putts) : null,
+      puttDistances: puttDistances.map(d => parseInt(d) || 0).filter(d => d > 0),
       notes,
       gpsLocation: location,
     };
@@ -115,6 +119,8 @@ export default function RecordShot() {
     setElevation('flat');
     setShotShape('straight');
     setResultQuality('good');
+    setPutts('');
+    setPuttDistances([]);
     setNotes('');
     clearLocation();
     setSaved(true);
@@ -184,6 +190,35 @@ export default function RecordShot() {
           onChange={v => setResultQuality(v as ResultQuality)}
           colorMap={RESULT_QUALITY_COLORS}
         />
+        {/* Putting */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Putting</h2>
+          <InputField label="Number of Putts" type="number" value={putts} onChange={(v) => {
+            setPutts(v);
+            const count = parseInt(v) || 0;
+            setPuttDistances(prev => {
+              const newDists = [...prev];
+              while (newDists.length < count) newDists.push('');
+              return newDists.slice(0, count);
+            });
+          }} min={0} max={10} placeholder="e.g. 2" />
+          {puttDistances.map((dist, i) => (
+            <InputField
+              key={i}
+              label={`Putt ${i + 1} Distance (feet)`}
+              type="number"
+              value={dist}
+              onChange={(v) => {
+                const updated = [...puttDistances];
+                updated[i] = v;
+                setPuttDistances(updated);
+              }}
+              min={0}
+              placeholder="e.g. 15"
+            />
+          ))}
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
           <textarea

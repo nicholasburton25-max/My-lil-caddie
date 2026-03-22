@@ -2,6 +2,7 @@ import type { Club, LieType, WindSpeed, WindDirection, ElevationType, ShotShape,
 
 export const CLUBS: Club[] = [
   'Driver', '3W', '5W', '7W',
+  '3H', '4H', '5H', '6H',
   '2i', '3i', '4i', '5i', '6i', '7i', '8i', '9i',
   'PW', 'GW', 'SW', 'LW',
   'Putter',

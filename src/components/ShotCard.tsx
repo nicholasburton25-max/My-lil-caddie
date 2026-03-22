@@ -42,6 +42,10 @@ export default function ShotCard({ shot, onDelete }: ShotCardProps) {
             <div><span className="font-medium">Wind:</span> {shot.wind.speed} {shot.wind.direction !== 'none' ? shot.wind.direction : ''}</div>
             <div><span className="font-medium">Elevation:</span> {shot.elevation}</div>
             {shot.scoreOnHole && <div><span className="font-medium">Score:</span> {shot.scoreOnHole}</div>}
+            {shot.putts != null && <div><span className="font-medium">Putts:</span> {shot.putts}</div>}
+            {shot.puttDistances?.length > 0 && (
+              <div><span className="font-medium">Putt Distances:</span> {shot.puttDistances.map(d => `${d}ft`).join(', ')}</div>
+            )}
             <div><span className="font-medium">Date:</span> {dateStr} {timeStr}</div>
           </div>
           {shot.notes && <div className="text-gray-500 italic">"{shot.notes}"</div>}
