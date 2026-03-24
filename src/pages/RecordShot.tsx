@@ -93,6 +93,7 @@ export default function RecordShot() {
   }, []);
 
   const handleVoiceApply = useCallback((data: ParsedShotData) => {
+    if (data.courseName) setCourseName(data.courseName);
     if (data.club) setClub(data.club);
     if (data.distance) setDistance(data.distance.toString());
     if (data.lie) setLie(data.lie);
@@ -158,7 +159,14 @@ export default function RecordShot() {
   return (
     <div className="p-4 max-w-lg mx-auto space-y-5">
       {showAnimation && <GolfBallAnimation quality={lastSavedQuality} onComplete={handleAnimationComplete} />}
-      {showVoice && <VoiceRecorder onApply={handleVoiceApply} onClose={() => setShowVoice(false)} />}
+      {showVoice && (
+        <VoiceRecorder
+          onApply={handleVoiceApply}
+          onClose={() => setShowVoice(false)}
+          initialCourseName={courseName || undefined}
+          initialHole={parseInt(holeNumber) || undefined}
+        />
+      )}
 
       {/* Voice Input Button */}
       <button
