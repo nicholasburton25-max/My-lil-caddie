@@ -5,7 +5,7 @@ import { avgDistanceByClub, resultDistribution, mostUsedClub, bestResultClub, to
 import StatCard from '../components/StatCard';
 import ClubDistanceChart from '../components/ClubDistanceChart';
 
-const PIE_COLORS = ['#2E7D32', '#4CAF50', '#FFC107', '#EF5350'];
+const PIE_COLORS = ['#00FF88', '#3b82f6', '#eab308', '#ef4444'];
 
 export default function Dashboard() {
   const { shots } = useShots();
@@ -18,16 +18,17 @@ export default function Dashboard() {
 
   if (shots.length === 0) {
     return (
-      <div className="p-4 max-w-lg mx-auto text-center text-gray-400 py-20">
-        <p className="text-lg">No stats yet</p>
-        <p className="text-sm mt-1">Record some shots to see your stats!</p>
+      <div className="p-4 max-w-lg mx-auto text-center py-20">
+        <div className="text-3xl mb-3 opacity-20">📊</div>
+        <p className="text-white/30 font-bold">No stats yet</p>
+        <p className="text-white/15 text-sm mt-1">Record some shots to see your stats!</p>
       </div>
     );
   }
 
   return (
-    <div className="p-4 max-w-lg mx-auto space-y-6">
-      <h2 className="text-lg font-bold text-gray-800">Your Stats</h2>
+    <div className="p-4 max-w-lg mx-auto space-y-5">
+      <h2 className="text-lg font-black text-white tracking-wide">Your Stats</h2>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
@@ -38,15 +39,15 @@ export default function Dashboard() {
       </div>
 
       {/* Average Distance Chart */}
-      <div className="bg-white rounded-xl shadow-sm p-4">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Average Distance by Club</h3>
+      <div className="glass-card p-4">
+        <h3 className="section-header mb-3">Average Distance by Club</h3>
         <ClubDistanceChart data={distByClub} />
       </div>
 
       {/* Result Distribution */}
       {resultDist.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Shot Quality</h3>
+        <div className="glass-card p-4">
+          <h3 className="section-header mb-3">Shot Quality</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -58,12 +59,21 @@ export default function Dashboard() {
                   outerRadius={70}
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                  stroke="rgba(0,0,0,0.3)"
+                  strokeWidth={2}
                 >
                   {resultDist.map((_, i) => (
                     <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    background: 'rgba(10,10,10,0.9)',
+                    border: '1px solid rgba(0,255,136,0.2)',
+                    borderRadius: '8px',
+                    color: '#e0e0e0',
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -81,7 +91,7 @@ export default function Dashboard() {
           a.click();
           URL.revokeObjectURL(url);
         }}
-        className="w-full py-3 border border-gray-300 rounded-xl text-sm text-gray-600 hover:bg-gray-50"
+        className="w-full py-3 rounded-xl text-sm font-bold option-btn border transition-all"
       >
         Export Data as JSON
       </button>
