@@ -229,3 +229,69 @@ export function summarizeParsed(data: ParsedShotData): string[] {
   if (data.putts !== undefined) items.push(`Putts: ${data.putts}`);
   return items;
 }
+
+// Step-specific parsers for guided voice flow
+export function parseCourseName(transcript: string): string | null {
+  const text = transcript.trim();
+  return text.length > 0 ? text : null;
+}
+
+export function parseHoleNumber(transcript: string): number | null {
+  const text = transcript.toLowerCase();
+  // "hole 7", "7", "seven", "number 7"
+  const match = text.match(/(?:hole\s+|number\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen)/i);
+  if (match) {
+    const num = parseSpokenNumber(match[1]);
+    if (num && num >= 1 && num <= 18) return num;
+  }
+  return null;
+}
+
+export function parseClub(transcript: string): Club | null {
+  return matchFirst(transcript.toLowerCase(), CLUB_PATTERNS) ?? null;
+}
+
+export function parseShotDetails(transcript: string): Pick<ParsedShotData, 'distance' | 'lie' | 'shotShape'> {
+  const full = parseVoiceInput(transcript);
+  const result: Pick<ParsedShotData, 'distance' | 'lie' | 'shotShape'> = {};
+  if (full.distance) result.distance = full.distance;
+  if (full.lie) result.lie = full.lie;
+  if (full.shotShape) result.shotShape = full.shotShape;
+  // Also try parsing a bare number as distance
+  if (!result.distance) {
+    const num = parseSpokenNumber(transcript.trim());
+    if (num && num >= 1 && num <= 400) result.distance = num;
+  }
+  return result;
+}
+
+export function parseWind(transcript: string): Pick<ParsedShotData, 'windSpeed' | 'windDirection'> {
+  const text = transcript.toLowerCase();
+  const result: Pick<ParsedShotData, 'windSpeed' | 'windDirection'> = {};
+  result.windSpeed = matchFirst(text, WIND_SPEED_PATTERNS);
+  result.windDirection = matchFirst(text, WIND_DIR_PATTERNS);
+  // Also match standalone direction words without "wind" prefix
+  if (!result.windDirection) {
+    const dirOnly: [RegExp, WindDirection][] = [
+      [/\bnortheast\b/i, 'NE'], [/\bnorthwest\b/i, 'NW'],
+      [/\bsoutheast\b/i, 'SE'], [/\bsouthwest\b/i, 'SW'],
+      [/\bnorth\b/i, 'N'], [/\bsouth\b/i, 'S'],
+      [/\beast\b/i, 'E'], [/\bwest\b/i, 'W'],
+    ];
+    result.windDirection = matchFirst(text, dirOnly);
+  }
+  return result;
+}
+
+export function parseElevation(transcript: string): ElevationType | null {
+  return matchFirst(transcript.toLowerCase(), ELEVATION_PATTERNS) ?? null;
+}
+
+export function parseResult(transcript: string): Pick<ParsedShotData, 'resultQuality' | 'scoreOnHole' | 'putts'> {
+  const full = parseVoiceInput(transcript);
+  const result: Pick<ParsedShotData, 'resultQuality' | 'scoreOnHole' | 'putts'> = {};
+  if (full.resultQuality) result.resultQuality = full.resultQuality;
+  if (full.scoreOnHole) result.scoreOnHole = full.scoreOnHole;
+  if (full.putts !== undefined) result.putts = full.putts;
+  return result;
+}
