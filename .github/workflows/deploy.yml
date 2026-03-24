@@ -2,6 +2,7 @@ name: Deploy to GitHub Pages
 # Trigger deployment
 
 on:
+  workflow_dispatch:
   push:
     branches: [main, claude/golf-shot-tracker-jo18c]
 

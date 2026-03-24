@@ -3,9 +3,8 @@
   <head>
     <meta charset="utf-8">
     <script>
-      // Redirect all paths to index.html for SPA client-side routing
-      var path = window.location.pathname;
-      window.location.replace(window.location.origin + path);
+      // Redirect 404s to index.html for SPA client-side routing
+      window.location.replace(window.location.origin + '/My-lil-caddie/');
     </script>
   </head>
   <body></body>

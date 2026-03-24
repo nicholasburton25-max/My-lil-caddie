@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import type { Shot, Club, LieType, WindSpeed, WindDirection, ElevationType, ShotShape, ResultQuality } from '../types/shot';
 import { CLUBS, LIES, WIND_SPEEDS, WIND_DIRECTIONS, ELEVATIONS, SHOT_SHAPES, RESULT_QUALITIES, RESULT_QUALITY_COLORS } from '../data/constants';
 import { useShots } from '../hooks/useShots';
 import { useGeolocation } from '../hooks/useGeolocation';
 import InputField from '../components/InputField';
 import SelectField from '../components/SelectField';
+import ClubBag from '../components/ClubBag';
+import ShotTracer from '../components/ShotTracer';
+import GolfBallAnimation from '../components/GolfBallAnimation';
 
 const LAST_CONTEXT_KEY = 'mlc_last_context';
 
@@ -43,7 +46,8 @@ function ButtonGroup<T extends string>({ label, options, value, onChange, colorM
 export default function RecordShot() {
   const { addShot } = useShots();
   const { location, loading: gpsLoading, error: gpsError, requestLocation, clearLocation } = useGeolocation();
-  const [saved, setSaved] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
+  const [lastSavedQuality, setLastSavedQuality] = useState<ResultQuality>('good');
 
   // Load last context for smart defaults
   const lastContext = (() => {
@@ -64,18 +68,17 @@ export default function RecordShot() {
   const [elevation, setElevation] = useState<ElevationType>('flat');
   const [shotShape, setShotShape] = useState<ShotShape>('straight');
   const [resultQuality, setResultQuality] = useState<ResultQuality>('good');
+  const [putts, setPutts] = useState('');
+  const [puttDistances, setPuttDistances] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
 
   // Get unique course names for datalist
   const { shots } = useShots();
   const courseNames = [...new Set(shots.map(s => s.courseName).filter(Boolean))];
 
-  useEffect(() => {
-    if (saved) {
-      const timer = setTimeout(() => setSaved(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [saved]);
+  const handleAnimationComplete = useCallback(() => {
+    setShowAnimation(false);
+  }, []);
 
   const handleSave = () => {
     if (!club || !distance) return;
@@ -93,11 +96,15 @@ export default function RecordShot() {
       elevation,
       shotShape,
       resultQuality,
+      putts: putts ? parseInt(putts) : null,
+      puttDistances: puttDistances.map(d => parseInt(d) || 0).filter(d => d > 0),
       notes,
       gpsLocation: location,
     };
 
     addShot(shot);
+    setLastSavedQuality(resultQuality);
+    setShowAnimation(true);
 
     // Save context for next shot
     localStorage.setItem(LAST_CONTEXT_KEY, JSON.stringify({
@@ -115,18 +122,16 @@ export default function RecordShot() {
     setElevation('flat');
     setShotShape('straight');
     setResultQuality('good');
+    setPutts('');
+    setPuttDistances([]);
     setNotes('');
     clearLocation();
-    setSaved(true);
   };
 
   return (
     <div className="p-4 max-w-lg mx-auto space-y-5">
-      {saved && (
-        <div className="bg-golf-100 text-golf-900 px-4 py-2 rounded-lg text-sm font-medium text-center animate-pulse">
-          Shot saved!
-        </div>
-      )}
+      {/* Golf Ball Animation */}
+      {showAnimation && <GolfBallAnimation quality={lastSavedQuality} onComplete={handleAnimationComplete} />}
 
       {/* Context */}
       <div className="space-y-3">
@@ -141,26 +146,15 @@ export default function RecordShot() {
         </div>
       </div>
 
-      {/* Club Selection */}
+      {/* Club Bag Selection */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Select Club</h2>
+        <ClubBag selected={club} onSelect={setClub} clubs={CLUBS} />
+      </div>
+
+      {/* Shot Details */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Shot</h2>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Club</label>
-          <div className="grid grid-cols-5 gap-1.5">
-            {CLUBS.map(c => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setClub(c)}
-                className={`py-2.5 rounded-lg text-sm font-medium min-h-[44px] transition-colors ${
-                  club === c ? 'bg-golf-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
         <InputField label="Distance (yards)" type="number" value={distance} onChange={setDistance} placeholder="e.g. 150" min={0} />
         <ButtonGroup label="Lie" options={LIES} value={lie} onChange={v => setLie(v as LieType)} />
       </div>
@@ -184,6 +178,52 @@ export default function RecordShot() {
           onChange={v => setResultQuality(v as ResultQuality)}
           colorMap={RESULT_QUALITY_COLORS}
         />
+
+        {/* Shot Tracer Preview */}
+        {distance && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Shot Preview</label>
+            <ShotTracer
+              shape={shotShape}
+              distance={parseInt(distance) || 0}
+              quality={resultQuality}
+              className="h-48 rounded-xl overflow-hidden shadow-sm"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Putting */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Putting</h2>
+        <InputField label="Number of Putts" type="number" value={putts} onChange={(v) => {
+          setPutts(v);
+          const count = parseInt(v) || 0;
+          setPuttDistances(prev => {
+            const newDists = [...prev];
+            while (newDists.length < count) newDists.push('');
+            return newDists.slice(0, count);
+          });
+        }} min={0} max={10} placeholder="e.g. 2" />
+        {puttDistances.map((dist, i) => (
+          <InputField
+            key={i}
+            label={`Putt ${i + 1} Distance (feet)`}
+            type="number"
+            value={dist}
+            onChange={(v) => {
+              const updated = [...puttDistances];
+              updated[i] = v;
+              setPuttDistances(updated);
+            }}
+            min={0}
+            placeholder="e.g. 15"
+          />
+        ))}
+      </div>
+
+      {/* Notes & GPS */}
+      <div className="space-y-3">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
           <textarea
@@ -195,7 +235,6 @@ export default function RecordShot() {
           />
         </div>
 
-        {/* GPS */}
         <div>
           <button
             type="button"
@@ -217,8 +256,12 @@ export default function RecordShot() {
       <button
         onClick={handleSave}
         disabled={!distance}
-        className="w-full py-3.5 bg-golf-800 text-white font-semibold rounded-xl text-base hover:bg-golf-900 disabled:bg-gray-300 disabled:cursor-not-allowed min-h-[48px] transition-colors"
+        className="w-full py-3.5 bg-golf-800 text-white font-semibold rounded-xl text-base hover:bg-golf-900 disabled:bg-gray-300 disabled:cursor-not-allowed min-h-[48px] transition-colors flex items-center justify-center gap-2"
       >
+        <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+          <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="10" cy="10" r="3" fill="currentColor" />
+        </svg>
         Save Shot
       </button>
     </div>

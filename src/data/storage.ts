@@ -3,9 +3,13 @@ import type { Shot } from '../types/shot';
 const STORAGE_KEY = 'mlc_shots';
 
 export function getShots(): Shot[] {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return [];
-  return JSON.parse(raw) as Shot[];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as Shot[];
+  } catch {
+    return [];
+  }
 }
 
 export function saveShot(shot: Shot): void {

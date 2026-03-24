@@ -4,6 +4,7 @@ import RecordShot from './pages/RecordShot';
 import ShotHistory from './pages/ShotHistory';
 import ClubRecommendation from './pages/ClubRecommendation';
 import Dashboard from './pages/Dashboard';
+import Scorecard from './pages/Scorecard';
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<RecordShot />} />
         <Route path="/history" element={<ShotHistory />} />
+        <Route path="/scorecard" element={<Scorecard />} />
         <Route path="/recommend" element={<ClubRecommendation />} />
         <Route path="/stats" element={<Dashboard />} />
       </Routes>
