@@ -8,6 +8,8 @@ import SelectField from '../components/SelectField';
 import ClubBag from '../components/ClubBag';
 import ShotTracer from '../components/ShotTracer';
 import GolfBallAnimation from '../components/GolfBallAnimation';
+import VoiceRecorder from '../components/VoiceRecorder';
+import type { ParsedShotData } from '../lib/voiceParser';
 
 const LAST_CONTEXT_KEY = 'mlc_last_context';
 
@@ -59,6 +61,7 @@ export default function RecordShot() {
   const { location, loading: gpsLoading, error: gpsError, requestLocation, clearLocation } = useGeolocation();
   const [showAnimation, setShowAnimation] = useState(false);
   const [lastSavedQuality, setLastSavedQuality] = useState<ResultQuality>('good');
+  const [showVoice, setShowVoice] = useState(false);
 
   const lastContext = (() => {
     try {
@@ -87,6 +90,23 @@ export default function RecordShot() {
 
   const handleAnimationComplete = useCallback(() => {
     setShowAnimation(false);
+  }, []);
+
+  const handleVoiceApply = useCallback((data: ParsedShotData) => {
+    if (data.club) setClub(data.club);
+    if (data.distance) setDistance(data.distance.toString());
+    if (data.lie) setLie(data.lie);
+    if (data.windSpeed) setWindSpeed(data.windSpeed);
+    if (data.windDirection) setWindDirection(data.windDirection);
+    if (data.elevation) setElevation(data.elevation);
+    if (data.shotShape) setShotShape(data.shotShape);
+    if (data.resultQuality) setResultQuality(data.resultQuality);
+    if (data.holeNumber) setHoleNumber(data.holeNumber.toString());
+    if (data.scoreOnHole) setScoreOnHole(data.scoreOnHole.toString());
+    if (data.putts !== undefined) {
+      setPutts(data.putts.toString());
+      setPuttDistances(Array(data.putts).fill(''));
+    }
   }, []);
 
   const handleSave = () => {
@@ -138,6 +158,24 @@ export default function RecordShot() {
   return (
     <div className="p-4 max-w-lg mx-auto space-y-5">
       {showAnimation && <GolfBallAnimation quality={lastSavedQuality} onComplete={handleAnimationComplete} />}
+      {showVoice && <VoiceRecorder onApply={handleVoiceApply} onClose={() => setShowVoice(false)} />}
+
+      {/* Voice Input Button */}
+      <button
+        onClick={() => setShowVoice(true)}
+        className="w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm uppercase tracking-wider transition-all"
+        style={{
+          background: 'linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,154,78,0.05))',
+          border: '1px solid rgba(0,255,136,0.2)',
+          color: 'rgba(0,255,136,0.7)',
+        }}
+      >
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+        Record with Voice
+      </button>
 
       {/* Round Info */}
       <div className="glass-card p-4 space-y-3">
