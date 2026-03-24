@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { Shot, Club, LieType, WindSpeed, WindDirection, ElevationType, ShotShape, ResultQuality } from '../types/shot';
-import { CLUBS, LIES, WIND_SPEEDS, WIND_DIRECTIONS, ELEVATIONS, SHOT_SHAPES, RESULT_QUALITIES, RESULT_QUALITY_COLORS } from '../data/constants';
+import { CLUBS, LIES, WIND_SPEEDS, WIND_DIRECTIONS, ELEVATIONS, SHOT_SHAPES, RESULT_QUALITIES } from '../data/constants';
 import { useShots } from '../hooks/useShots';
 import { useGeolocation } from '../hooks/useGeolocation';
 import InputField from '../components/InputField';
@@ -11,6 +11,13 @@ import GolfBallAnimation from '../components/GolfBallAnimation';
 
 const LAST_CONTEXT_KEY = 'mlc_last_context';
 
+const QUALITY_COLORS: Record<string, string> = {
+  great: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400',
+  good: 'bg-blue-500/20 border-blue-500/50 text-blue-400',
+  ok: 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400',
+  poor: 'bg-red-500/20 border-red-500/50 text-red-400',
+};
+
 function ButtonGroup<T extends string>({ label, options, value, onChange, colorMap }: {
   label: string;
   options: readonly T[];
@@ -20,24 +27,28 @@ function ButtonGroup<T extends string>({ label, options, value, onChange, colorM
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label className="block text-xs font-bold text-white/40 uppercase tracking-wider mb-1.5">{label}</label>
       <div className="flex flex-wrap gap-1.5">
-        {options.map(opt => (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => onChange(opt)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium min-h-[44px] transition-colors ${
-              value === opt
-                ? colorMap?.[opt]
-                  ? `${colorMap[opt]} text-white`
-                  : 'bg-golf-800 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {opt}
-          </button>
-        ))}
+        {options.map(opt => {
+          const isActive = value === opt;
+          const hasCustomColor = colorMap && isActive;
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => onChange(opt)}
+              className={`px-3 py-2 rounded-lg text-sm font-semibold min-h-[40px] transition-all duration-150 border ${
+                hasCustomColor
+                  ? colorMap[opt]
+                  : isActive
+                    ? 'option-btn-active'
+                    : 'option-btn'
+              }`}
+            >
+              {opt}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -49,7 +60,6 @@ export default function RecordShot() {
   const [showAnimation, setShowAnimation] = useState(false);
   const [lastSavedQuality, setLastSavedQuality] = useState<ResultQuality>('good');
 
-  // Load last context for smart defaults
   const lastContext = (() => {
     try {
       const raw = localStorage.getItem(LAST_CONTEXT_KEY);
@@ -72,7 +82,6 @@ export default function RecordShot() {
   const [puttDistances, setPuttDistances] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
 
-  // Get unique course names for datalist
   const { shots } = useShots();
   const courseNames = [...new Set(shots.map(s => s.courseName).filter(Boolean))];
 
@@ -106,13 +115,11 @@ export default function RecordShot() {
     setLastSavedQuality(resultQuality);
     setShowAnimation(true);
 
-    // Save context for next shot
     localStorage.setItem(LAST_CONTEXT_KEY, JSON.stringify({
       courseName,
       holeNumber: parseInt(holeNumber) || 1,
     }));
 
-    // Reset form but keep context
     setScoreOnHole('');
     setClub('7i');
     setDistance('');
@@ -130,12 +137,11 @@ export default function RecordShot() {
 
   return (
     <div className="p-4 max-w-lg mx-auto space-y-5">
-      {/* Golf Ball Animation */}
       {showAnimation && <GolfBallAnimation quality={lastSavedQuality} onComplete={handleAnimationComplete} />}
 
-      {/* Context */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Round Info</h2>
+      {/* Round Info */}
+      <div className="glass-card p-4 space-y-3">
+        <h2 className="section-header">Round Info</h2>
         <InputField label="Course Name" value={courseName} onChange={setCourseName} placeholder="e.g. Pine Valley" list="courses" />
         <datalist id="courses">
           {courseNames.map(c => <option key={c} value={c} />)}
@@ -146,56 +152,56 @@ export default function RecordShot() {
         </div>
       </div>
 
-      {/* Club Bag Selection */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Select Club</h2>
+      {/* Club Selection */}
+      <div className="glass-card p-4 space-y-3">
+        <h2 className="section-header">Select Club</h2>
         <ClubBag selected={club} onSelect={setClub} clubs={CLUBS} />
       </div>
 
       {/* Shot Details */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Shot</h2>
+      <div className="glass-card p-4 space-y-3">
+        <h2 className="section-header">Shot Details</h2>
         <InputField label="Distance (yards)" type="number" value={distance} onChange={setDistance} placeholder="e.g. 150" min={0} />
         <ButtonGroup label="Lie" options={LIES} value={lie} onChange={v => setLie(v as LieType)} />
       </div>
 
       {/* Conditions */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Conditions</h2>
+      <div className="glass-card p-4 space-y-3">
+        <h2 className="section-header">Conditions</h2>
         <ButtonGroup label="Wind" options={WIND_SPEEDS} value={windSpeed} onChange={v => setWindSpeed(v as WindSpeed)} />
         <SelectField label="Wind Direction" value={windDirection} onChange={v => setWindDirection(v as WindDirection)} options={WIND_DIRECTIONS} />
         <ButtonGroup label="Elevation" options={ELEVATIONS} value={elevation} onChange={v => setElevation(v as ElevationType)} />
       </div>
 
       {/* Result */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Result</h2>
+      <div className="glass-card p-4 space-y-3">
+        <h2 className="section-header">Result</h2>
         <ButtonGroup label="Shot Shape" options={SHOT_SHAPES} value={shotShape} onChange={v => setShotShape(v as ShotShape)} />
         <ButtonGroup
           label="Quality"
           options={RESULT_QUALITIES}
           value={resultQuality}
           onChange={v => setResultQuality(v as ResultQuality)}
-          colorMap={RESULT_QUALITY_COLORS}
+          colorMap={QUALITY_COLORS}
         />
 
         {/* Shot Tracer Preview */}
         {distance && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Shot Preview</label>
+            <label className="block text-xs font-bold text-white/40 uppercase tracking-wider mb-1.5">Shot Preview</label>
             <ShotTracer
               shape={shotShape}
               distance={parseInt(distance) || 0}
               quality={resultQuality}
-              className="h-48 rounded-xl overflow-hidden shadow-sm"
+              className="h-48 rounded-xl overflow-hidden neon-glow"
             />
           </div>
         )}
       </div>
 
       {/* Putting */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Putting</h2>
+      <div className="glass-card p-4 space-y-3">
+        <h2 className="section-header">Putting</h2>
         <InputField label="Number of Putts" type="number" value={putts} onChange={(v) => {
           setPutts(v);
           const count = parseInt(v) || 0;
@@ -223,15 +229,16 @@ export default function RecordShot() {
       </div>
 
       {/* Notes & GPS */}
-      <div className="space-y-3">
+      <div className="glass-card p-4 space-y-3">
+        <h2 className="section-header">Notes & Location</h2>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+          <label className="block text-xs font-bold text-white/40 uppercase tracking-wider mb-1.5">Notes</label>
           <textarea
             value={notes}
             onChange={e => setNotes(e.target.value)}
             placeholder="Any additional notes..."
             rows={2}
-            className="w-full px-3 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-golf-500 focus:border-transparent resize-none"
+            className="w-full px-3 py-2.5 rounded-lg input-game text-sm resize-none"
           />
         </div>
 
@@ -240,23 +247,25 @@ export default function RecordShot() {
             type="button"
             onClick={requestLocation}
             disabled={gpsLoading}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 min-h-[44px]"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg option-btn text-sm min-h-[40px] transition-all"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-neon" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            {gpsLoading ? 'Getting location...' : location ? `Location saved (${location.lat.toFixed(4)}, ${location.lng.toFixed(4)})` : 'Pin Location'}
+            <span className="text-white/60">
+              {gpsLoading ? 'Getting location...' : location ? `Pinned (${location.lat.toFixed(4)}, ${location.lng.toFixed(4)})` : 'Pin Location'}
+            </span>
           </button>
           {gpsError && <p className="text-xs text-red-400 mt-1">{gpsError}</p>}
         </div>
       </div>
 
-      {/* Save */}
+      {/* Save Button */}
       <button
         onClick={handleSave}
         disabled={!distance}
-        className="w-full py-3.5 bg-golf-800 text-white font-semibold rounded-xl text-base hover:bg-golf-900 disabled:bg-gray-300 disabled:cursor-not-allowed min-h-[48px] transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 rounded-xl text-base btn-game min-h-[52px] flex items-center justify-center gap-2"
       >
         <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
           <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" />

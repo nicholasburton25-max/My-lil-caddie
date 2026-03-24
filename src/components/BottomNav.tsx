@@ -10,23 +10,45 @@ const tabs = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-dark-900 border-t border-dark-700 z-50">
-      <div className="flex justify-around max-w-lg mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-glass-border"
+      style={{
+        background: 'linear-gradient(180deg, rgba(5,5,5,0.9) 0%, rgba(0,10,5,0.98) 100%)',
+        backdropFilter: 'blur(20px)',
+      }}
+    >
+      {/* Top glow line */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-px"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(0,255,136,0.3), transparent)' }}
+      />
+
+      <div className="flex justify-around max-w-lg mx-auto pb-[env(safe-area-inset-bottom)]">
         {tabs.map(tab => (
           <NavLink
             key={tab.to}
             to={tab.to}
             end={tab.to === '/'}
             className={({ isActive }) =>
-              `flex flex-col items-center py-2 px-3 min-w-[64px] text-xs ${
-                isActive ? 'text-golf-500' : 'text-gray-500'
+              `relative flex flex-col items-center py-3 px-3 min-w-[60px] text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                isActive ? 'text-neon' : 'text-dark-500 hover:text-dark-600'
               }`
             }
           >
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d={tab.icon} />
-            </svg>
-            {tab.label}
+            {({ isActive }) => (
+              <>
+                {/* Active indicator glow */}
+                {isActive && (
+                  <div className="absolute -top-px left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-neon"
+                    style={{ boxShadow: '0 0 8px rgba(0,255,136,0.6), 0 0 20px rgba(0,255,136,0.2)' }}
+                  />
+                )}
+                <svg className={`w-5 h-5 mb-1 transition-all duration-200 ${isActive ? 'drop-shadow-[0_0_6px_rgba(0,255,136,0.5)]' : ''}`}
+                  fill="none" stroke="currentColor" strokeWidth={isActive ? 2 : 1.5} viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d={tab.icon} />
+                </svg>
+                {tab.label}
+              </>
+            )}
           </NavLink>
         ))}
       </div>

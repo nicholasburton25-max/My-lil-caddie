@@ -30,12 +30,12 @@ export default function ShotHistory() {
   return (
     <div className="p-4 max-w-lg mx-auto space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-gray-800">Shot History</h2>
-        <span className="text-sm text-gray-400">{filtered.length} shot{filtered.length !== 1 ? 's' : ''}</span>
+        <h2 className="text-lg font-black text-white tracking-wide">Shot History</h2>
+        <span className="text-xs font-mono text-neon/50">{filtered.length} shot{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
       {/* Filters */}
-      <div className="space-y-2">
+      <div className="glass-card p-3 space-y-2">
         <div className="grid grid-cols-3 gap-2">
           <SelectField label="Club" value={clubFilter} onChange={setClubFilter} options={['all', ...CLUBS]} />
           <SelectField label="Lie" value={lieFilter} onChange={setLieFilter} options={['all', ...LIES]} />
@@ -49,7 +49,7 @@ export default function ShotHistory() {
               onChange={e => setCourseFilter(e.target.value)}
               placeholder="Search course..."
               list="hist-courses"
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-golf-500"
+              className="w-full px-3 py-2 rounded-lg input-game text-sm"
             />
             <datalist id="hist-courses">
               {courseNames.map(c => <option key={c} value={c} />)}
@@ -57,18 +57,19 @@ export default function ShotHistory() {
           </div>
           <button
             onClick={() => setSortOrder(s => s === 'newest' ? 'oldest' : 'newest')}
-            className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 min-h-[44px]"
+            className="px-3 py-2 rounded-lg option-btn text-sm min-h-[40px] font-bold"
           >
-            {sortOrder === 'newest' ? 'Newest' : 'Oldest'}
+            {sortOrder === 'newest' ? '↓ New' : '↑ Old'}
           </button>
         </div>
       </div>
 
       {/* Shots */}
       {filtered.length === 0 ? (
-        <div className="text-center text-gray-400 py-12">
-          <p className="text-lg">No shots found</p>
-          <p className="text-sm mt-1">Record your first shot to get started!</p>
+        <div className="text-center py-16">
+          <div className="text-3xl mb-3 opacity-20">⛳</div>
+          <p className="text-white/30 font-bold">No shots found</p>
+          <p className="text-white/15 text-sm mt-1">Record your first shot to get started!</p>
         </div>
       ) : (
         <div className="space-y-2">

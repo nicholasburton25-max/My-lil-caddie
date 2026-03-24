@@ -6,9 +6,8 @@ interface Props {
   onComplete: () => void;
 }
 
-// Generate random confetti pieces once
 function generateConfetti(count: number) {
-  const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+  const colors = ['#00FF88', '#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#BB8FCE'];
   const shapes = ['circle', 'square', 'strip'] as const;
   return Array.from({ length: count }, (_, i) => ({
     id: i,
@@ -18,8 +17,6 @@ function generateConfetti(count: number) {
     delay: Math.random() * 400,
     duration: 1200 + Math.random() * 800,
     rotation: Math.random() * 360,
-    rotSpeed: (Math.random() - 0.5) * 720,
-    xDrift: (Math.random() - 0.5) * 60,
     size: 6 + Math.random() * 6,
   }));
 }
@@ -50,9 +47,8 @@ export default function GolfBallAnimation({ quality, onComplete }: Props) {
 
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none overflow-hidden">
-      {/* Darkened overlay */}
       <div className={`absolute inset-0 bg-black transition-opacity duration-500 ${
-        phase === 'land' || phase === 'confetti' ? 'opacity-0' : 'opacity-20'
+        phase === 'land' || phase === 'confetti' ? 'opacity-0' : 'opacity-40'
       }`} />
 
       {/* Golf ball */}
@@ -77,25 +73,25 @@ export default function GolfBallAnimation({ quality, onComplete }: Props) {
         }}
       >
         <div className="relative">
-          <div className="w-8 h-8 rounded-full bg-white shadow-lg border border-gray-200"
+          <div className="w-8 h-8 rounded-full"
             style={{
-              background: 'radial-gradient(circle at 35% 35%, #ffffff, #e8e8e8)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 -2px 4px rgba(0,0,0,0.1)',
+              background: 'radial-gradient(circle at 35% 35%, #ffffff, #d0d0d0)',
+              boxShadow: '0 0 20px rgba(0,255,136,0.3), 0 2px 8px rgba(0,0,0,0.3)',
             }}
           >
             <div className="absolute top-1 left-2 w-1 h-1 rounded-full bg-gray-300/50" />
             <div className="absolute top-2.5 left-1 w-1 h-1 rounded-full bg-gray-300/50" />
             <div className="absolute top-2 left-3.5 w-1 h-1 rounded-full bg-gray-300/50" />
-            <div className="absolute top-4 left-2.5 w-1 h-1 rounded-full bg-gray-300/50" />
-            <div className="absolute top-3.5 left-4.5 w-1 h-1 rounded-full bg-gray-300/50" />
           </div>
           {phase === 'arc' && (
-            <div className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full bg-white/30 blur-sm animate-ping" />
+            <div className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full blur-sm animate-ping"
+              style={{ backgroundColor: 'rgba(0,255,136,0.3)' }}
+            />
           )}
         </div>
       </div>
 
-      {/* "Shot Saved!" / "GREAT SHOT!" text */}
+      {/* Message */}
       <div
         className={`absolute left-1/2 top-1/3 -translate-x-1/2 transition-all duration-500 ${
           phase === 'land' || phase === 'confetti' ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
@@ -103,30 +99,44 @@ export default function GolfBallAnimation({ quality, onComplete }: Props) {
       >
         {isGreat ? (
           <div className="text-center">
-            <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 text-white px-8 py-4 rounded-2xl shadow-2xl text-xl font-black whitespace-nowrap tracking-wide"
-              style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
+            <div className="px-8 py-4 rounded-2xl text-xl font-black whitespace-nowrap tracking-widest uppercase"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,255,136,0.2), rgba(255,215,0,0.2))',
+                border: '2px solid rgba(0,255,136,0.4)',
+                color: '#00FF88',
+                textShadow: '0 0 20px rgba(0,255,136,0.5), 0 0 40px rgba(0,255,136,0.2)',
+                boxShadow: '0 0 30px rgba(0,255,136,0.2), inset 0 0 30px rgba(0,255,136,0.05)',
+              }}
             >
-              GREAT SHOT!
+              Great Shot!
             </div>
-            <div className="text-yellow-500 text-sm font-bold mt-2 animate-pulse">
+            <div className="text-neon/60 text-sm font-bold mt-2 animate-pulse uppercase tracking-wider">
               Pure strike!
             </div>
           </div>
         ) : (
-          <div className="bg-golf-800 text-white px-6 py-3 rounded-2xl shadow-xl text-lg font-bold whitespace-nowrap">
+          <div className="px-6 py-3 rounded-2xl text-lg font-bold whitespace-nowrap"
+            style={{
+              background: 'rgba(0,255,136,0.1)',
+              border: '1px solid rgba(0,255,136,0.3)',
+              color: '#00FF88',
+              boxShadow: '0 0 20px rgba(0,255,136,0.1)',
+            }}
+          >
             Shot Saved!
           </div>
         )}
       </div>
 
-      {/* Standard sparkles for non-great shots */}
+      {/* Sparkles for non-great */}
       {!isGreat && phase === 'land' && (
         <>
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-2 h-2 bg-golf-400 rounded-full animate-ping"
+              className="absolute w-2 h-2 rounded-full animate-ping"
               style={{
+                backgroundColor: 'rgba(0,255,136,0.5)',
                 left: `${45 + Math.cos(i * Math.PI / 4) * 8}%`,
                 top: `${30 + Math.sin(i * Math.PI / 4) * 8}%`,
                 animationDelay: `${i * 50}ms`,
@@ -137,7 +147,7 @@ export default function GolfBallAnimation({ quality, onComplete }: Props) {
         </>
       )}
 
-      {/* CONFETTI for great shots */}
+      {/* Confetti for great shots */}
       {isGreat && (phase === 'land' || phase === 'confetti') && (
         <>
           {confettiPieces.map(piece => (
@@ -151,40 +161,16 @@ export default function GolfBallAnimation({ quality, onComplete }: Props) {
               }}
             >
               {piece.shape === 'circle' ? (
-                <div
-                  className="rounded-full"
-                  style={{
-                    width: piece.size,
-                    height: piece.size,
-                    backgroundColor: piece.color,
-                    transform: `rotate(${piece.rotation}deg)`,
-                  }}
-                />
+                <div className="rounded-full" style={{ width: piece.size, height: piece.size, backgroundColor: piece.color, transform: `rotate(${piece.rotation}deg)` }} />
               ) : piece.shape === 'square' ? (
-                <div
-                  style={{
-                    width: piece.size,
-                    height: piece.size,
-                    backgroundColor: piece.color,
-                    transform: `rotate(${piece.rotation}deg)`,
-                    borderRadius: 1,
-                  }}
-                />
+                <div style={{ width: piece.size, height: piece.size, backgroundColor: piece.color, transform: `rotate(${piece.rotation}deg)`, borderRadius: 1 }} />
               ) : (
-                <div
-                  style={{
-                    width: piece.size * 0.4,
-                    height: piece.size * 1.5,
-                    backgroundColor: piece.color,
-                    transform: `rotate(${piece.rotation}deg)`,
-                    borderRadius: 1,
-                  }}
-                />
+                <div style={{ width: piece.size * 0.4, height: piece.size * 1.5, backgroundColor: piece.color, transform: `rotate(${piece.rotation}deg)`, borderRadius: 1 }} />
               )}
             </div>
           ))}
 
-          {/* Golden sparkle bursts */}
+          {/* Neon sparkle bursts */}
           {[...Array(12)].map((_, i) => (
             <div
               key={`spark-${i}`}
@@ -196,47 +182,12 @@ export default function GolfBallAnimation({ quality, onComplete }: Props) {
               }}
             >
               <svg width="16" height="16" viewBox="0 0 16 16">
-                <path
-                  d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5Z"
-                  fill="#FFD700"
-                  opacity="0.9"
-                />
+                <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5Z" fill="#00FF88" opacity="0.9" />
               </svg>
             </div>
           ))}
         </>
       )}
-
-      {/* Confetti CSS animations */}
-      <style>{`
-        @keyframes confetti-fall {
-          0% {
-            transform: translateY(0) translateX(0) rotate(0deg) scale(1);
-            opacity: 1;
-          }
-          25% {
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(100vh) translateX(${Math.random() > 0.5 ? '' : '-'}30px) rotate(720deg) scale(0.5);
-            opacity: 0;
-          }
-        }
-        @keyframes sparkle-burst {
-          0% {
-            transform: scale(0) rotate(0deg);
-            opacity: 0;
-          }
-          50% {
-            transform: scale(1.5) rotate(180deg);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(0) rotate(360deg);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 }
